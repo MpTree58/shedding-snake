@@ -2,7 +2,15 @@
 
 **A gravity snake-puzzle with one twist: shed your tail to build the world.**
 
+[![CI](https://github.com/MpTree58/shedding-snake/actions/workflows/ci.yml/badge.svg)](https://github.com/MpTree58/shedding-snake/actions/workflows/ci.yml)
+
 [中文文档 →](README.zh.md)
+
+![Gameplay](docs/screenshots/gameplay.png)
+
+| Main menu | Level editor |
+|---|---|
+| ![Menu](docs/screenshots/menu.png) | ![Editor](docs/screenshots/editor.png) |
 
 Eat apples to grow. Your body is a bridge. Press **X** and your tail freezes
 into a permanent crate — even in mid-air. Body = health = building material.

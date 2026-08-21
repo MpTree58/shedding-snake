@@ -2,7 +2,15 @@
 
 **一款重力贪吃蛇解谜游戏,招牌机制:断掉尾巴,搭建世界。**
 
+[![CI](https://github.com/MpTree58/shedding-snake/actions/workflows/ci.yml/badge.svg)](https://github.com/MpTree58/shedding-snake/actions/workflows/ci.yml)
+
 [English →](README.md)
+
+![游戏画面](docs/screenshots/gameplay.png)
+
+| 主菜单 | 关卡编辑器 |
+|---|---|
+| ![菜单](docs/screenshots/menu.png) | ![编辑器](docs/screenshots/editor.png) |
 
 吃苹果变长,身体就是桥。按 **X**,尾巴一节冻结成永久木箱——凌空也能定住。
 **身体 = 血量 = 建材。**
