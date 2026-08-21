@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <title>瓦片索引 · Kenney Pixel Platformer</title>
+    <style>
+      body { background: #1a1c2c; color: #e8ecf1; font-family: monospace; padding: 12px; }
+      .cell { display: inline-block; text-align: center; margin: 2px; width: 56px; }
+      .cell img { width: 48px; height: 48px; image-rendering: pixelated; background: #3b4252; }
+      .cell span { display: block; font-size: 10px; color: #94a3b8; }
+    </style>
+  </head>
+  <body>
+    <h3>Tiles/tile_XXXX.png(编号即 Phaser spritesheet frame 序号)</h3>
+    <div id="grid"></div>
+    <script>
+      const grid = document.getElementById('grid');
+      for (let i = 0; i < 186; i++) {
+        const n = String(i).padStart(4, '0');
+        const div = document.createElement('div');
+        div.className = 'cell';
+        const img = document.createElement('img');
+        img.src = `/assets-preview/pixel-platformer/Tiles/tile_${n}.png`;
+        img.onerror = () => div.remove();
+        const label = document.createElement('span');
+        label.textContent = i;
+        div.appendChild(img);
+        div.appendChild(label);
+        grid.appendChild(div);
+      }
+    </script>
+  </body>
+</html>

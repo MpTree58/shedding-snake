@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <title>锁门方案 · 选型</title>
+    <style>
+      body { background: #dff6f5; color: #20344a; font-family: monospace; padding: 20px; max-width: 900px; margin: 0 auto; }
+      h2 { font-size: 16px; }
+      .v { display: inline-block; text-align: center; margin: 14px 22px; vertical-align: top; }
+      canvas { image-rendering: pixelated; width: 108px; height: 138px; background: #c2e3e8; }
+      .v span { display: block; font-size: 13px; font-weight: bold; margin-top: 8px; max-width: 130px; }
+      .note { font-size: 13px; color: #537089; }
+    </style>
+  </head>
+  <body>
+    <h2>锁住的门(方案 D 门体 + 锁,全部按 Kenney 取色)</h2>
+    <div id="row"></div>
+    <p class="note">
+      调色:金 #f4b41b / 金属灰 #8b97a8 / 木 #cb815e,描边用各自家族的深色——全部采样自素材包。
+      吃光苹果后锁消失、门恢复原样。选一个,或说要改哪里。
+    </p>
+    <script>
+      const P = {
+        O: '#6f3e43', // key-family outline
+        G: '#f4b41b', // key gold
+        S: '#8b97a8', // spike metal grey
+        s: '#434a5f', // universal dark outline
+        W: '#cb815e', // wood
+        w: '#9f5a52', // wood dark
+      };
+      const row = document.getElementById('row');
+
+      function makeVariant(label, draw) {
+        const holder = document.createElement('div');
+        holder.className = 'v';
+        const cv = document.createElement('canvas');
+        cv.width = 18;
+        cv.height = 23;
+        holder.appendChild(cv);
+        holder.insertAdjacentHTML('beforeend', `<span>${label}</span>`);
+        row.appendChild(holder);
+        const ctx = cv.getContext('2d');
+        const lintel = new Image();
+        const door = new Image();
+        let loaded = 0;
+        const done = () => {
+          if (++loaded < 2) return;
+          ctx.drawImage(lintel, 0, -13); // lintel art lives in rows 13-17
+          ctx.drawImage(door, 0, 5);
+          draw((x, y, c) => {
+            ctx.fillStyle = P[c];
+            ctx.fillRect(x, y + 5, 1, 1); // +5 = door cell offset
+          });
+        };
+        lintel.onload = done;
+        door.onload = done;
+        lintel.src = '/assets-preview/pixel-platformer/Tiles/tile_0110.png';
+        door.src = '/assets-preview/pixel-platformer/Tiles/tile_0130.png';
+      }
+
+      const sprite = (px, rows, ox, oy) =>
+        rows.forEach((r, y) => [...r].forEach((c, x) => { if (c !== '.') px(ox + x, oy + y, c); }));
+
+      // V1 挂锁居中
+      makeVariant('V1 · 金挂锁居中', (px) => {
+        sprite(px, [
+          '..OOO..',
+          '.O...O.',
+          '.O...O.',
+          'OOOOOOO',
+          'OGGGGGO',
+          'OGGOGGO',
+          'OGGOGGO',
+          'OGGGGGO',
+          'OOOOOOO',
+        ], 5, 6);
+      });
+
+      // V2 铁链 + 挂锁
+      makeVariant('V2 · 铁链封门 + 挂锁', (px) => {
+        for (let x = 0; x < 18; x++) {
+          px(x, 6, x % 2 ? 'S' : 's');
+          px(x, 7, x % 2 ? 's' : 'S');
+        }
+        sprite(px, [
+          '.OOO.',
+          'O...O',
+          'OOOOO',
+          'OGGGO',
+          'OGOGO',
+          'OGGGO',
+          'OOOOO',
+        ], 6, 7);
+      });
+
+      // V3 木板封条
+      makeVariant('V3 · 木板钉死', (px) => {
+        for (const y of [5, 10]) {
+          for (let x = 0; x < 18; x++) {
+            px(x, y, 'w');
+            px(x, y + 1, 'W');
+            px(x, y + 2, 'w');
+          }
+          px(2, y + 1, 's');
+          px(15, y + 1, 's');
+        }
+      });
+
+      // V4 金属锁板
+      makeVariant('V4 · 金属锁板(大锁孔)', (px) => {
+        sprite(px, [
+          'ssssssss',
+          'sSSSSSSs',
+          'sSSGGSSs',
+          'sSGGGGSs',
+          'sSSGGSSs',
+          'sSSGGSSs',
+          'sSSSSSSs',
+          'ssssssss',
+        ], 5, 5);
+      });
+    </script>
+  </body>
+</html>

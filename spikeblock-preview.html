@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <title>尖刺方块方案 v2 · 四向刺 · Kenney 风</title>
+    <style>
+      body { background: #dff6f5; color: #20344a; font-family: monospace; padding: 20px; max-width: 980px; margin: 0 auto; }
+      h2 { font-size: 16px; border-bottom: 2px solid #20344a; padding-bottom: 4px; }
+      .design { margin-bottom: 30px; }
+      .design h3 { font-size: 14px; margin: 8px 0; }
+      canvas, img.ref { image-rendering: pixelated; background: #c2e3e8; margin-right: 20px; vertical-align: middle; }
+      .note { font-size: 13px; color: #537089; }
+    </style>
+  </head>
+  <body>
+    <h2>尖刺方块 v2:刺长在所有暴露面 · 齿形/配色 100% 取自 Kenney 原版尖刺</h2>
+    <p>
+      原版参考(齿形与四色调色板的来源):
+      <img class="ref" src="/assets-preview/pixel-platformer/Tiles/tile_0068.png" style="width:72px;height:72px" />
+      <span class="note">#434a5f 描边 · #dce1e7 高光 · #959ab1 亮侧 · #747a90 基座</span>
+    </p>
+    <div id="out"></div>
+    <p class="note">
+      每版:单块 · 三连横条 · 2×2。连接面无缝合并,暴露面长刺(单块=四面全刺,像刺雷;
+      2×2 顶行只朝上/侧面长刺,内部无缝)。选一版,我落进游戏。
+    </p>
+    <script>
+      const A = '#434a5f', B = '#dce1e7', Cc = '#959ab1', D = '#747a90';
+      const CORE1 = '#566c86', CORE1S = '#3b4252';
+
+      // Kenney tooth, 6 wide x 5 deep, pointing UP (transplanted pixels)
+      const TOOTH = [
+        '..AA..',
+        '.AAAA.',
+        '.ABBA.',
+        'ACCBBA',
+        'ACCBBA',
+      ];
+      // small stud, 3 wide x 3 deep (Terraria-style density, Kenney shading)
+      const STUD = ['.A.', 'ABA', 'ACA'];
+
+      function stamp(px, pattern, ox, oy, rot) {
+        const H = pattern.length, W = pattern[0].length;
+        const M = { A, B, C: Cc, D };
+        for (let y = 0; y < H; y++) {
+          for (let x = 0; x < W; x++) {
+            const ch = pattern[y][x];
+            if (ch === '.') continue;
+            let tx, ty;
+            if (rot === 'up') { tx = x; ty = y; }
+            else if (rot === 'down') { tx = x; ty = H - 1 - y; }
+            else if (rot === 'left') { tx = y; ty = x; }
+            else { tx = H - 1 - y; ty = x; } // right
+            px(ox + tx, oy + ty, M[ch]);
+          }
+        }
+      }
+
+      // teeth strip along a face; span excludes exposed-corner zones
+      function face(px, open, side, pattern, depth) {
+        const along0 = (side === 't' || side === 'b')
+          ? (open.l ? 0 : depth) : (open.t ? 0 : depth);
+        const along1 = (side === 't' || side === 'b')
+          ? (open.r ? 17 : 17 - depth) : (open.b ? 17 : 17 - depth);
+        const span = along1 - along0 + 1;
+        const w = pattern[0].length;
+        const H = pattern.length; // stamp at the OUTER edge: offset by tooth
+        const n = Math.floor(span / w); // height, not by the corner depth
+        const pad = along0 + Math.floor((span - n * w) / 2);
+        for (let i = 0; i < n; i++) {
+          const o = pad + i * w;
+          if (side === 't') stamp(px, pattern, o, 0, 'up');
+          else if (side === 'b') stamp(px, pattern, o, 18 - H, 'down');
+          else if (side === 'l') stamp(px, pattern, 0, o, 'left');
+          else stamp(px, pattern, 18 - H, o, 'right');
+        }
+      }
+
+      function core(px, open, depth, fill, shade) {
+        const x0 = open.l ? 0 : depth, x1 = open.r ? 17 : 17 - depth;
+        const y0 = open.t ? 0 : depth, y1 = open.b ? 17 : 17 - depth;
+        for (let y = y0; y <= y1; y++) {
+          for (let x = x0; x <= x1; x++) {
+            const edge = (y === y0 && !open.t) || (y === y1 && !open.b) ||
+                         (x === x0 && !open.l) || (x === x1 && !open.r);
+            px(x, y, edge ? A : (y >= y1 - 2 && !open.b ? shade : fill));
+          }
+        }
+      }
+
+      function eachExposed(open, fn) {
+        if (!open.t) fn('t');
+        if (!open.b) fn('b');
+        if (!open.l) fn('l');
+        if (!open.r) fn('r');
+      }
+
+      const DESIGNS = [
+        ['K1 · 大锥刺(马里奥带刺方块原型 → Kenney 齿)', (px, open) => {
+          core(px, open, 5, CORE1, CORE1S);
+          eachExposed(open, (s) => face(px, open, s, TOOTH, 5));
+        }],
+        ['K2 · 密钉面(Terraria Spike Block 原型 → Kenney 短钉)', (px, open) => {
+          core(px, open, 3, D, '#566c86');
+          eachExposed(open, (s) => face(px, open, s, STUD, 3));
+        }],
+        ['K3 · 基座环绕(原版地刺连底座整条环绕)', (px, open) => {
+          core(px, open, 5, CORE1, CORE1S);
+          eachExposed(open, (s) => {
+            // teeth (short, 3 rows) + a base bar hugging the core edge
+            // (D bar + bright B rim — lifted from the original's bottom rows)
+            const teeth3 = ['..AA..', '.ABBA.', 'ACCBBA'];
+            face(px, open, s, teeth3, 5);
+            const along0 = (s === 't' || s === 'b') ? (open.l ? 0 : 5) : (open.t ? 0 : 5);
+            const along1 = (s === 't' || s === 'b') ? (open.r ? 17 : 12) : (open.b ? 17 : 12);
+            for (let a = along0; a <= along1; a++) {
+              if (s === 't') { px(a, 3, D); px(a, 4, B); }
+              else if (s === 'b') { px(a, 14, D); px(a, 13, B); }
+              else if (s === 'l') { px(3, a, D); px(4, a, B); }
+              else { px(14, a, D); px(13, a, B); }
+            }
+          });
+        }],
+      ];
+
+      const out = document.getElementById('out');
+      const S = 4;
+      function drawArrangement(design, cells) {
+        const maxX = Math.max(...cells.map((c) => c[0])) + 1;
+        const maxY = Math.max(...cells.map((c) => c[1])) + 1;
+        const cv = document.createElement('canvas');
+        cv.width = maxX * 18; cv.height = maxY * 18;
+        cv.style.width = maxX * 18 * S + 'px'; cv.style.height = maxY * 18 * S + 'px';
+        const ctx = cv.getContext('2d');
+        const has = (x, y) => cells.some((c) => c[0] === x && c[1] === y);
+        for (const [cx, cy] of cells) {
+          const open = { t: has(cx, cy - 1), b: has(cx, cy + 1), l: has(cx - 1, cy), r: has(cx + 1, cy) };
+          const px = (x, y, col) => { ctx.fillStyle = col; ctx.fillRect(cx * 18 + x, cy * 18 + y, 1, 1); };
+          design(px, open);
+        }
+        return cv;
+      }
+      const only = new URLSearchParams(location.search).get('only');
+      DESIGNS.forEach(([label, fn], i) => {
+        if (only !== null && Number(only) !== i) return;
+        const d = document.createElement('div');
+        d.className = 'design';
+        d.innerHTML = `<h3>${label}</h3>`;
+        d.appendChild(drawArrangement(fn, [[0, 0]]));
+        d.appendChild(drawArrangement(fn, [[0, 0], [1, 0], [2, 0]]));
+        d.appendChild(drawArrangement(fn, [[0, 0], [1, 0], [0, 1], [1, 1]]));
+        out.appendChild(d);
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <title>锁方块方案 · 选型</title>
+    <style>
+      body { background: #dff6f5; color: #20344a; font-family: monospace; padding: 20px; max-width: 960px; margin: 0 auto; }
+      h2 { font-size: 16px; border-bottom: 2px solid #20344a; padding-bottom: 4px; }
+      .design { margin-bottom: 26px; }
+      .design h3 { font-size: 14px; margin: 8px 0; }
+      canvas { image-rendering: pixelated; background: #c2e3e8; margin-right: 22px; vertical-align: middle; }
+      .note { font-size: 13px; color: #537089; }
+    </style>
+  </head>
+  <body>
+    <h2>锁方块四版方案(每版:单块 · 三连横条 · 2×2,看拼接连贯性)</h2>
+    <div id="out"></div>
+    <p class="note">调色全部采样自素材包:木 #cb815e/#9f5a52 · 金 #f4b41b · 金属 #8b97a8/#566c86 · 描边 #434a5f。选一版(可以提修改),我落进游戏。</p>
+    <script>
+      const C = {
+        wood: '#cb815e', woodD: '#9f5a52', gold: '#f4b41b', goldD: '#6f3e43',
+        metal: '#8b97a8', metalD: '#566c86', dark: '#434a5f', deep: '#3b4252',
+        hi: '#e8ecf1',
+      };
+
+      // connection-aware base identical to the game's drawBlockBase
+      function base(px, open, fill, shade, outline) {
+        const cT = !open.t, cB = !open.b, cL = !open.l, cR = !open.r;
+        for (let y = 0; y < 18; y++) {
+          for (let x = 0; x < 18; x++) {
+            if ((x === 0 && y === 0 && cT && cL) || (x === 17 && y === 0 && cT && cR) ||
+                (x === 0 && y === 17 && cB && cL) || (x === 17 && y === 17 && cB && cR)) continue;
+            const edge = (y === 0 && cT) || (y === 17 && cB) || (x === 0 && cL) || (x === 17 && cR);
+            px(x, y, edge ? outline : (y >= 13 ? shade : fill));
+          }
+        }
+      }
+
+      // a proper keyhole: ring + slot, on a small plate
+      function keyhole(px, plate, hole) {
+        for (let y = 5; y <= 12; y++) for (let x = 6; x <= 11; x++) px(x, y, plate);
+        px(8, 7, hole); px(9, 7, hole);
+        px(7, 8, hole); px(10, 8, hole);
+        px(8, 9, hole); px(9, 9, hole);
+        px(8, 10, hole); px(9, 10, hole);
+        px(8, 11, hole); px(9, 11, hole);
+      }
+
+      const DESIGNS = [
+        ['L1 · 木箱 + 金锁板(金板上开黑锁孔)', (px, open) => {
+          base(px, open, C.wood, C.woodD, C.dark);
+          keyhole(px, C.gold, C.goldD);
+          px(6, 5, C.hi); // plate glint
+        }],
+        ['L2 · 铁块锁(铆钉 + 金锁孔)', (px, open) => {
+          base(px, open, C.metal, C.metalD, C.dark);
+          if (!open.t && !open.l) { px(2, 2, C.deep); }
+          if (!open.t && !open.r) { px(15, 2, C.deep); }
+          if (!open.b && !open.l) { px(2, 15, C.deep); }
+          if (!open.b && !open.r) { px(15, 15, C.deep); }
+          keyhole(px, C.gold, C.dark);
+        }],
+        ['L3 · 木板箱(Kenney 原版风:板缝 + 深色锁孔板)', (px, open) => {
+          base(px, open, C.wood, C.woodD, C.dark);
+          for (const y of [6, 12]) {
+            for (let x = 1; x < 17; x++) {
+              if ((x === 1 && !open.l) || (x === 16 && !open.r)) continue;
+              px(x, y, C.woodD);
+            }
+          }
+          for (let y = 5; y <= 12; y++) for (let x = 6; x <= 11; x++) px(x, y, C.goldD);
+          px(8, 7, C.gold); px(9, 7, C.gold);
+          px(7, 8, C.gold); px(10, 8, C.gold);
+          px(8, 9, C.gold); px(9, 9, C.gold);
+          px(8, 10, C.gold); px(9, 10, C.gold);
+        }],
+        ['L4 · 暗色保险柜(深色体 + 金环锁孔)', (px, open) => {
+          base(px, open, C.metalD, C.deep, C.dark);
+          px(8, 6, C.gold); px(9, 6, C.gold);
+          px(7, 7, C.gold); px(10, 7, C.gold);
+          px(7, 8, C.gold); px(10, 8, C.gold);
+          px(8, 9, C.gold); px(9, 9, C.gold);
+          px(8, 10, C.gold); px(9, 10, C.gold);
+          px(8, 11, C.gold); px(9, 11, C.gold);
+        }],
+      ];
+
+      const out = document.getElementById('out');
+      const S = 4;
+      function drawArrangement(design, cells) {
+        const maxX = Math.max(...cells.map((c) => c[0])) + 1;
+        const maxY = Math.max(...cells.map((c) => c[1])) + 1;
+        const cv = document.createElement('canvas');
+        cv.width = maxX * 18; cv.height = maxY * 18;
+        cv.style.width = maxX * 18 * S + 'px'; cv.style.height = maxY * 18 * S + 'px';
+        const ctx = cv.getContext('2d');
+        const has = (x, y) => cells.some((c) => c[0] === x && c[1] === y);
+        for (const [cx, cy] of cells) {
+          const open = { t: has(cx, cy - 1), b: has(cx, cy + 1), l: has(cx - 1, cy), r: has(cx + 1, cy) };
+          const px = (x, y, col) => { ctx.fillStyle = col; ctx.fillRect(cx * 18 + x, cy * 18 + y, 1, 1); };
+          design(px, open);
+        }
+        return cv;
+      }
+      for (const [label, fn] of DESIGNS) {
+        const d = document.createElement('div');
+        d.className = 'design';
+        d.innerHTML = `<h3>${label}</h3>`;
+        d.appendChild(drawArrangement(fn, [[0, 0]]));
+        d.appendChild(drawArrangement(fn, [[0, 0], [1, 0], [2, 0]]));
+        d.appendChild(drawArrangement(fn, [[0, 0], [1, 0], [0, 1], [1, 1]]));
+        out.appendChild(d);
+      }
+    </script>
+  </body>
+</html>

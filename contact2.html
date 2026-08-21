@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <title>地形拼接分析</title>
+    <style>
+      body { background: #1a1c2c; color: #e8ecf1; font-family: monospace; padding: 12px; }
+      .cell { display: inline-block; text-align: center; margin: 3px; }
+      .cell img { width: 108px; height: 108px; image-rendering: pixelated; background: #34405a; }
+      .cell span { display: block; font-size: 12px; color: #ffe98a; }
+      h3 { color: #ffe98a; margin: 18px 0 6px; }
+      #bg canvas { image-rendering: pixelated; background: #34405a; margin: 2px; }
+    </style>
+  </head>
+  <body>
+    <h3>候选地形瓦片(放大 6 倍,找九宫格边角)</h3>
+    <div id="grid"></div>
+    <h3>背景图集 tilemap-backgrounds_packed.png 逐帧切片(24px)</h3>
+    <div id="bg"></div>
+    <script>
+      const ids = [0,1,2,3,4,5,6,20,21,22,23,24,25,29,120,121,122,123,140,141,142,143,153,154,155];
+      const grid = document.getElementById('grid');
+      for (const i of ids) {
+        const n = String(i).padStart(4, '0');
+        const div = document.createElement('div');
+        div.className = 'cell';
+        div.innerHTML = `<img src="/assets-preview/pixel-platformer/Tiles/tile_${n}.png"><span>${i}</span>`;
+        grid.appendChild(div);
+      }
+      const img = new Image();
+      img.src = '/assets-preview/pixel-platformer/Tilemap/tilemap-backgrounds_packed.png';
+      img.onload = () => {
+        const bg = document.getElementById('bg');
+        const F = 24;
+        const cols = Math.floor(img.width / F), rows = Math.floor(img.height / F);
+        bg.insertAdjacentHTML('afterbegin', `<div>sheet ${img.width}x${img.height} = ${cols} cols x ${rows} rows</div>`);
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const cv = document.createElement('canvas');
+            cv.width = F; cv.height = F;
+            cv.style.width = '96px'; cv.style.height = '96px';
+            cv.getContext('2d').drawImage(img, c * F, r * F, F, F, 0, 0, F, F);
+            const wrap = document.createElement('div');
+            wrap.className = 'cell';
+            wrap.appendChild(cv);
+            wrap.insertAdjacentHTML('beforeend', `<span>${r * cols + c}</span>`);
+            bg.appendChild(wrap);
+          }
+          bg.appendChild(document.createElement('br'));
+        }
+      };
+    </script>
+  </body>
+</html>

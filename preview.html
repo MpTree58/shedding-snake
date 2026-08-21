@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <title>素材预览 · Shedding Snake</title>
+    <style>
+      @font-face { font-family: 'Kenney Pixel'; src: url('/assets-preview/fonts/Fonts/Kenney%20Pixel.ttf'); }
+      @font-face { font-family: 'Kenney Pixel Square'; src: url('/assets-preview/fonts/Fonts/Kenney%20Pixel%20Square.ttf'); }
+      @font-face { font-family: 'Kenney Mini'; src: url('/assets-preview/fonts/Fonts/Kenney%20Mini.ttf'); }
+      @font-face { font-family: 'Kenney Mini Square'; src: url('/assets-preview/fonts/Fonts/Kenney%20Mini%20Square.ttf'); }
+      @font-face { font-family: 'Kenney Future'; src: url('/assets-preview/fonts/Fonts/Kenney%20Future.ttf'); }
+      @font-face { font-family: 'Kenney Blocks'; src: url('/assets-preview/fonts/Fonts/Kenney%20Blocks.ttf'); }
+      body {
+        background: #1a1c2c;
+        color: #e8ecf1;
+        font-family: monospace;
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+      h1 { font-size: 20px; }
+      h2 { font-size: 16px; color: #ffe98a; border-bottom: 1px solid #3b4252; padding-bottom: 6px; }
+      img { image-rendering: pixelated; background: #24283b; border-radius: 4px; }
+      .tiles img { width: 108px; height: 108px; margin: 4px; }
+      .sheet { max-width: 100%; }
+      .row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+      audio { width: 220px; height: 32px; }
+      .sfx { display: inline-block; margin: 6px 12px 6px 0; }
+      .sfx span { display: block; font-size: 12px; color: #94a3b8; }
+      .note { color: #94a3b8; font-size: 13px; }
+      .font-sample { margin: 10px 0; }
+      .font-sample .name { font-size: 12px; color: #94a3b8; }
+      .font-sample .demo { font-size: 28px; color: #e8ecf1; }
+      .rec { color: #51cf66; }
+    </style>
+  </head>
+  <body>
+    <h1>🐍 素材预览(全部 CC0 / 免费商用)</h1>
+    <p class="note">
+      来源:Kenney Pixel Platformer(瓦片/背景)、Kenney Interface Sounds(音效)、
+      Kenney Fonts(字体)、Juhani Junkala Retro Game Music Pack(音乐,OpenGameArt CC0)。
+      详见 assets-preview/LICENSES.md。音频已全部转为 MP3,任何浏览器可播;
+      如在内嵌预览面板中无声,请用系统浏览器(Chrome/Safari)直接打开本页。
+    </p>
+
+    <h2>一、地形瓦片(替换我们的砖块/平台)· 18×18px</h2>
+    <div class="row">
+      <img class="sheet" src="/assets-preview/pixel-platformer/SampleA.png" alt="sample A" />
+      <img class="sheet" src="/assets-preview/pixel-platformer/SampleB.png" alt="sample B" />
+    </div>
+    <p class="note">整张瓦片表(180+ 块,含草地/泥土/砖块/梯子/水/尖刺装饰):</p>
+    <img class="sheet" src="/assets-preview/pixel-platformer/Tilemap/tilemap_packed.png" style="width: 100%" alt="tilemap" />
+
+    <h2>二、单块放大看细节</h2>
+    <div class="tiles">
+      <img src="/assets-preview/pixel-platformer/Tiles/tile_0000.png" alt="t0" />
+      <img src="/assets-preview/pixel-platformer/Tiles/tile_0001.png" alt="t1" />
+      <img src="/assets-preview/pixel-platformer/Tiles/tile_0002.png" alt="t2" />
+      <img src="/assets-preview/pixel-platformer/Tiles/tile_0022.png" alt="t22" />
+      <img src="/assets-preview/pixel-platformer/Tiles/tile_0027.png" alt="t27" />
+      <img src="/assets-preview/pixel-platformer/Tiles/tile_0028.png" alt="t28" />
+      <img src="/assets-preview/pixel-platformer/Tiles/tile_0048.png" alt="t48" />
+      <img src="/assets-preview/pixel-platformer/Tiles/tile_0049.png" alt="t49" />
+    </div>
+
+    <h2>三、背景(视差山丘/天空)</h2>
+    <img class="sheet" src="/assets-preview/pixel-platformer/Tilemap/tilemap-backgrounds.png" style="width: 70%" alt="backgrounds" />
+
+    <h2>四、字体(Kenney Fonts,游戏内 HUD/标题用)</h2>
+    <div class="font-sample">
+      <span class="name">Kenney Pixel <span class="rec">★ 推荐:正文/提示(最像素、窄、省空间)</span></span>
+      <div class="demo" style="font-family: 'Kenney Pixel'">SHEDDING SNAKE — Level Clear! 0123456789</div>
+    </div>
+    <div class="font-sample">
+      <span class="name">Kenney Pixel Square</span>
+      <div class="demo" style="font-family: 'Kenney Pixel Square'">SHEDDING SNAKE — Level Clear! 0123456789</div>
+    </div>
+    <div class="font-sample">
+      <span class="name">Kenney Mini <span class="rec">★ 推荐:小号 HUD 数字</span></span>
+      <div class="demo" style="font-family: 'Kenney Mini'">SHEDDING SNAKE — Level Clear! 0123456789</div>
+    </div>
+    <div class="font-sample">
+      <span class="name">Kenney Mini Square</span>
+      <div class="demo" style="font-family: 'Kenney Mini Square'">SHEDDING SNAKE — Level Clear! 0123456789</div>
+    </div>
+    <div class="font-sample">
+      <span class="name">Kenney Future(圆润,适合按钮)</span>
+      <div class="demo" style="font-family: 'Kenney Future'">SHEDDING SNAKE — Level Clear! 0123456789</div>
+    </div>
+    <div class="font-sample">
+      <span class="name">Kenney Blocks(方块拼字,适合大标题 LOGO)</span>
+      <div class="demo" style="font-family: 'Kenney Blocks'">SHEDDING SNAKE 0123</div>
+    </div>
+
+    <h2>五、音效候选(游戏内动作 → 音效,已转 MP3)</h2>
+    <div>
+      <div class="sfx"><span>吃苹果 → pluck</span><audio controls src="/assets-preview/mp3/pluck_001.mp3"></audio></div>
+      <div class="sfx"><span>移动 → tick</span><audio controls src="/assets-preview/mp3/tick_001.mp3"></audio></div>
+      <div class="sfx"><span>断尾 → drop</span><audio controls src="/assets-preview/mp3/drop_002.mp3"></audio></div>
+      <div class="sfx"><span>死亡 → error</span><audio controls src="/assets-preview/mp3/error_004.mp3"></audio></div>
+      <div class="sfx"><span>过关 → confirmation</span><audio controls src="/assets-preview/mp3/confirmation_001.mp3"></audio></div>
+      <div class="sfx"><span>撞墙 → bong</span><audio controls src="/assets-preview/mp3/bong_001.mp3"></audio></div>
+      <div class="sfx"><span>悔棋 → back</span><audio controls src="/assets-preview/mp3/back_001.mp3"></audio></div>
+      <div class="sfx"><span>开门 → open</span><audio controls src="/assets-preview/mp3/open_001.mp3"></audio></div>
+    </div>
+
+    <h2>六、背景音乐候选(5 首芯片风循环曲,已转 MP3)</h2>
+    <div>
+      <div class="sfx"><span>Title Screen(标题)</span><audio controls src="/assets-preview/mp3/bgm-Title-Screen.mp3"></audio></div>
+      <div class="sfx"><span>Level 1(轻快)</span><audio controls src="/assets-preview/mp3/bgm-Level-1.mp3"></audio></div>
+      <div class="sfx"><span>Level 2(紧张)</span><audio controls src="/assets-preview/mp3/bgm-Level-2.mp3"></audio></div>
+      <div class="sfx"><span>Level 3(高速)</span><audio controls src="/assets-preview/mp3/bgm-Level-3.mp3"></audio></div>
+      <div class="sfx"><span>Ending(结尾)</span><audio controls src="/assets-preview/mp3/bgm-Ending.mp3"></audio></div>
+    </div>
+
+    <p class="note">
+      蛇本体(脸/身体)继续自制——那是我们的表情包 IP,但按 STYLE.md 军规严格对齐
+      Kenney 风格(同调色板、同描边、同 18px 逻辑网格)。
+    </p>
+  </body>
+</html>

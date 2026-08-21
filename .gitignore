@@ -1,0 +1,14 @@
+# dependencies / build
+node_modules/
+dist/
+
+# asset evaluation area — source packs live here (large zips, full Kenney
+# packs); only the files copied into public/assets/ ship with the game.
+# See CREDITS in README for licenses.
+assets-preview/
+
+# OS noise
+.DS_Store
+
+# local tooling context — never publish
+AGENT_CONTEXT.md
