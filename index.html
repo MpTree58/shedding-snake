@@ -13,6 +13,14 @@
         background: #1a1c2c;
         height: 100%;
         overflow: hidden;
+        /* CrazyGames mobile requirement: swipes must drive the game, never
+           scroll/zoom/select the page (docs.crazygames.com technical reqs) */
+        touch-action: none;
+        overscroll-behavior: none;
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+        -webkit-tap-highlight-color: transparent;
       }
       #game {
         width: 100%;
