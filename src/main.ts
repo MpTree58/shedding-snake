@@ -48,6 +48,14 @@ Promise.all([loadFonts(), initCrazyGames()]).then(() => {
   audio.bind(game);
   crazy.onMuteChange((m) => audio.setPlatformMuted(m));
 
+  // iOS parks the AudioContext in "suspended" after an interruption (call,
+  // app switch); WebKit only lets a user gesture revive it — a visibility
+  // listener is not enough (CrazyGames technical requirement).
+  document.addEventListener('touchend', () => {
+    const ctx = (game.sound as { context?: AudioContext }).context;
+    if (ctx && ctx.state === 'suspended') void ctx.resume();
+  });
+
   // dev handle for automated browser tests (harmless in production)
   (window as unknown as { __game: Phaser.Game }).__game = game;
 });
