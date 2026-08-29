@@ -116,13 +116,20 @@ export class BoardRenderer {
         }
         if (cell === Cell.SpikeBlock) {
           // our own spike block: connects like terrain, teeth on exposed top
-          // below/side off-board counts as connected (bottom-row blocks merge
-          // into the dirt fill, edge blocks run off-screen) — but never the
-          // top: the lethal top teeth must always show
+          // a face is "connected" (no teeth, flush edge) when it touches any
+          // solid — other spike blocks merge seamlessly, and faces embedded
+          // against walls/locks/crates don't grow teeth into the dirt. The
+          // top only hides its lethal teeth when something solid sits on it.
+          const flushWith = (c: Cell) =>
+            c === Cell.Wall ||
+            c === Cell.SpikeBlock ||
+            c === Cell.Lock ||
+            c === Cell.Shed ||
+            c === Cell.ExitKey;
           const sbAt = (sx: number, sy: number) => {
-            if (sy < 0) return false;
+            if (sy < 0) return false; // board top edge: keep the teeth
             if (sy >= state.height || sx < 0 || sx >= state.width) return true;
-            return state.grid[sy]![sx] === Cell.SpikeBlock;
+            return flushWith(state.grid[sy]![sx]!);
           };
           const open: Open = {
             t: sbAt(x, y - 1),
