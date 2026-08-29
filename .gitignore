@@ -16,3 +16,5 @@ AGENT_CONTEXT.md
 # design scratch pages + local deploy bundles
 spikejunction-preview.html
 deploy/
+covers/*.mp4
+covers/video-poster.png
