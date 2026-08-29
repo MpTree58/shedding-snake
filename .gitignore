@@ -12,3 +12,7 @@ assets-preview/
 
 # local tooling context — never publish
 AGENT_CONTEXT.md
+
+# design scratch pages + local deploy bundles
+spikejunction-preview.html
+deploy/

@@ -326,12 +326,13 @@ function drawSpikeBlockTex(p: Painter, f: SpikeFaces, c: SpikeCorners = {}): voi
   const y1 = 17 - inset(f.b);
   for (let y = y0; y <= y1; y++) {
     for (let x = x0; x <= x1; x++) {
-      // carve the body back at concave inner corners (bars drawn below)
+      // notch the body back at concave inner corners — only the 3px tooth
+      // zone, so the corner bands (drawn below) line up with straight faces
       if (
-        (c.tr && x >= 13 && y <= 4) ||
-        (c.tl && x <= 4 && y <= 4) ||
-        (c.br && x >= 13 && y >= 13) ||
-        (c.bl && x <= 4 && y >= 13)
+        (c.tr && x >= 15 && y <= 2) ||
+        (c.tl && x <= 2 && y <= 2) ||
+        (c.br && x >= 15 && y >= 15) ||
+        (c.bl && x <= 2 && y >= 15)
       ) {
         continue;
       }
@@ -343,7 +344,9 @@ function drawSpikeBlockTex(p: Painter, f: SpikeFaces, c: SpikeCorners = {}): voi
         continue; // radius-1 corner between two outlined faces
       }
       const edge = oT || oB || oL || oR;
-      p.px(x, y, edge ? DARK : y >= y1 - 2 && f.b !== 'm' ? CORE_SHADE : CORE);
+      // bottom shade: a single subtle row (a heavy band reads as a break
+      // in merged shapes — 用户 feedback)
+      p.px(x, y, edge ? DARK : y === y1 - 1 && f.b !== 'm' ? CORE_SHADE : CORE);
     }
   }
 
@@ -419,16 +422,18 @@ function drawSpikeBlockTex(p: Painter, f: SpikeFaces, c: SpikeCorners = {}): voi
     }
   }
 
-  // concave inner corners: the frame turns the corner with the SAME layer
-  // order as every straight face (outline → D → C → body), leaving only a
-  // small 2x2 open notch at the very elbow
+  // concave inner corners (J2, user-picked): the base band turns the corner
+  // with the SAME layer order as every straight face — from the air pocket
+  // inward: 3px notch (where teeth would sit) → D → C → dark outline → body.
+  // The rings tile the annulus, so neighbouring faces' bars continue into
+  // them seamlessly.
   const wrapCorner = (right: boolean, bottom: boolean): void => {
     const X = (i: number) => (right ? 17 - i : i);
     const Y = (i: number) => (bottom ? 17 - i : i);
     const layers: [number, number][] = [
-      [2, DARK],
       [3, SPK_D],
       [4, SPK_C],
+      [5, DARK],
     ];
     for (const [d, color] of layers) {
       for (let a = 0; a <= d; a++) {

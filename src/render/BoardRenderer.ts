@@ -22,7 +22,9 @@ export function layoutBoard(
 ): BoardLayout {
   const availW = scene.scale.width;
   const availH = scene.scale.height - topPad - bottomPad;
-  const fit = Math.min(1, availW / (width * TILE), availH / (height * TILE));
+  const raw = Math.min(availW / (width * TILE), availH / (height * TILE));
+  // small boards get a crisp integer 2x zoom; everything else caps at 1
+  const fit = raw >= 2 ? 2 : Math.min(1, raw);
   const ox = (availW - width * TILE * fit) / 2;
   const oy = topPad + (availH - height * TILE * fit) / 2;
   return { ox, oy, fit };
