@@ -132,6 +132,17 @@ export class GameScene extends Phaser.Scene {
     this.startLevel();
   }
 
+  private undo(): void {
+    this.sfx('sfx-undo', 0.3);
+    this.engine.dispatch({ type: 'undo' });
+    crazy.gameplayStart(); // undoing out of a death overlay resumes play
+  }
+
+  private restartLevel(): void {
+    this.engine.dispatch({ type: 'restart' });
+    crazy.gameplayStart();
+  }
+
   private exit(): void {
     crazy.gameplayStop();
     this.scene.start(this.returnTo);
@@ -169,30 +180,30 @@ export class GameScene extends Phaser.Scene {
       const dir = dirKeys[ev.code];
       if (dir) this.engine.dispatch({ type: 'move', dir });
       else if (ev.code === 'KeyX') this.engine.dispatch({ type: 'shed' });
-      else if (ev.code === 'KeyZ') {
-        this.sfx('sfx-undo', 0.3);
-        this.engine.dispatch({ type: 'undo' });
-        crazy.gameplayStart(); // undoing out of a death overlay resumes play
-      } else if (ev.code === 'KeyR') {
-        this.engine.dispatch({ type: 'restart' });
-        crazy.gameplayStart();
-      }
+      else if (ev.code === 'KeyZ') this.undo();
+      else if (ev.code === 'KeyR') this.restartLevel();
       else if (ev.code === 'KeyN') this.gotoLevel(this.levelIndex + 1);
       else if (ev.code === 'KeyP') this.gotoLevel(this.levelIndex - 1);
     });
 
     // Swipe to move. Shedding is ONLY the X key or the SHED button — a bare
     // tap/click must never shed (people click the canvas just to focus it).
-    const shedBtn = makeButton(
-      this,
-      this.scale.width - 56,
-      this.scale.height - 64,
-      'SHED',
-      () => this.engine.dispatch({ type: 'shed' }),
-      { fontSize: '16px', minWidth: 80 },
-    );
+    // Touch players have no keyboard, so every essential action gets a
+    // button: SHED/UNDO in the right-thumb zone, RESTART/MENU bottom-left
+    // so a costly restart is never one slip away from the hot buttons.
+    const btnOpts = { fontSize: '16px', minWidth: 80 };
+    const buttons = [
+      makeButton(this, this.scale.width - 56, this.scale.height - 64, 'SHED',
+        () => this.engine.dispatch({ type: 'shed' }), btnOpts),
+      makeButton(this, this.scale.width - 56, this.scale.height - 106, 'UNDO',
+        () => this.undo(), btnOpts),
+      makeButton(this, 64, this.scale.height - 64, 'MENU',
+        () => this.exit(), { fontSize: '16px', minWidth: 96 }),
+      makeButton(this, 64, this.scale.height - 106, 'RESTART',
+        () => this.restartLevel(), { fontSize: '16px', minWidth: 96 }),
+    ];
     const onButton = (p: Phaser.Input.Pointer): boolean =>
-      shedBtn.getBounds().contains(p.x, p.y);
+      buttons.some((b) => b.getBounds().contains(p.x, p.y));
 
     this.input.on('pointerdown', (p: Phaser.Input.Pointer) => {
       this.swipeStart = onButton(p) ? undefined : { x: p.x, y: p.y };
@@ -355,8 +366,8 @@ export class GameScene extends Phaser.Scene {
       this.overlay
         .setText(
           state.deathCause === 'spike'
-            ? 'OUCH! Impaled.\n[Z] undo   [R] restart'
-            : 'You fell off the world.\n[Z] undo   [R] restart',
+            ? 'OUCH! Impaled.\nUNDO or RESTART'
+            : 'You fell off the world.\nUNDO or RESTART',
         )
         .setVisible(true);
     } else if (state.status === 'won') {
