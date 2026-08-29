@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { audio } from '../audio';
 import { crazy } from '../crazygames';
 import { GameEngine } from '../core/engine';
 import { LevelDef } from '../core/level';
@@ -125,12 +126,8 @@ export class GameScene extends Phaser.Scene {
     // between levels = the natural break for a midgame ad (cooldown inside);
     // QA rules: mute + halt while the ad plays, resume right after
     crazy.maybeMidgameAd(
-      () => {
-        this.sound.mute = true;
-      },
-      () => {
-        this.sound.mute = false;
-      },
+      () => audio.setAdMuted(true),
+      () => audio.setAdMuted(false),
     );
     this.startLevel();
   }
@@ -162,7 +159,7 @@ export class GameScene extends Phaser.Scene {
         return;
       }
       if (ev.code === 'KeyM') {
-        this.sound.mute = !this.sound.mute;
+        audio.toggleUser();
         return;
       }
       if (this.engine.state.status === 'won') {

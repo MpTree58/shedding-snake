@@ -22,6 +22,8 @@ interface CGSdk {
     gameplayStart(): void;
     gameplayStop(): void;
     happytime(): void;
+    // optional: absent on older SDK builds
+    addSettingsChangeListener?(cb: (s: { muteAudio?: boolean }) => void): void;
   };
   data: {
     getItem(key: string): string | null;
@@ -85,6 +87,13 @@ export const crazy = {
   /** Sparingly, on real achievements (level clear). */
   happytime(): void {
     safe(() => sdk?.game.happytime());
+  },
+
+  /** Platform mute from the CrazyGames player UI (settings change listener).
+   *  QA: this must take priority over in-game audio settings. No-op when the
+   *  SDK is absent or predates addSettingsChangeListener. */
+  onMuteChange(cb: (muted: boolean) => void): void {
+    safe(() => sdk?.game.addSettingsChangeListener?.((s) => cb(!!s.muteAudio)));
   },
 
   /** Cloud-save backend for Progress; undefined when SDK is unavailable. */

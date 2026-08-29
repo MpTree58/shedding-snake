@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { audio } from './audio';
 import { crazy, initCrazyGames } from './crazygames';
 import { progress } from './progress';
 import { EditorScene } from './render/EditorScene';
@@ -43,6 +44,10 @@ Promise.all([loadFonts(), initCrazyGames()]).then(() => {
     },
     scene: [PreloadScene, MenuScene, LevelSelectScene, GameScene, EditorScene],
   });
+  // all mute sources (platform / M key / ads) route through one switchboard
+  audio.bind(game);
+  crazy.onMuteChange((m) => audio.setPlatformMuted(m));
+
   // dev handle for automated browser tests (harmless in production)
   (window as unknown as { __game: Phaser.Game }).__game = game;
 });
