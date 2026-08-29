@@ -298,7 +298,18 @@ export interface SpikeFaces {
  * against other spike blocks merge seamlessly. Tooth shape and colors are
  * transplanted pixel-for-pixel from the stock Kenney spike (tile 0068).
  */
-function drawSpikeBlockTex(p: Painter, f: SpikeFaces): void {
+/** Inner-corner flags: true when the two adjacent faces merge with other
+ *  spike blocks but the DIAGONAL cell is open air — the concave elbow of an
+ *  L/T/+ shape. There the base bar wraps around the corner and the body is
+ *  carved back, so the frame reads continuous instead of a bare slab. */
+export interface SpikeCorners {
+  tl?: boolean;
+  tr?: boolean;
+  bl?: boolean;
+  br?: boolean;
+}
+
+function drawSpikeBlockTex(p: Painter, f: SpikeFaces, c: SpikeCorners = {}): void {
   // Kenney spike-family palette, sampled from tile 0068
   const SPK_B = 0xdce1e7; // highlight
   const SPK_C = 0x959ab1; // lit flank
@@ -315,6 +326,15 @@ function drawSpikeBlockTex(p: Painter, f: SpikeFaces): void {
   const y1 = 17 - inset(f.b);
   for (let y = y0; y <= y1; y++) {
     for (let x = x0; x <= x1; x++) {
+      // carve the body back at concave inner corners (bars drawn below)
+      if (
+        (c.tr && x >= 13 && y <= 4) ||
+        (c.tl && x <= 4 && y <= 4) ||
+        (c.br && x >= 13 && y >= 13) ||
+        (c.bl && x <= 4 && y >= 13)
+      ) {
+        continue;
+      }
       const oT = f.t !== 'm' && y === y0;
       const oB = f.b !== 'm' && y === y1;
       const oL = f.l !== 'm' && x === x0;
@@ -398,6 +418,69 @@ function drawSpikeBlockTex(p: Painter, f: SpikeFaces): void {
       }
     }
   }
+
+  // concave inner corners: the base bar turns the corner, orientations
+  // matching the bars of the two merging arms, so the frame is continuous
+  if (c.tr) {
+    for (let y = 0; y <= 4; y++) {
+      p.px(13, y, SPK_C);
+      p.px(14, y, SPK_D);
+    }
+    for (let x = 13; x <= 17; x++) {
+      p.px(x, 3, SPK_D);
+      p.px(x, 4, SPK_C);
+    }
+  }
+  if (c.tl) {
+    for (let y = 0; y <= 4; y++) {
+      p.px(4, y, SPK_C);
+      p.px(3, y, SPK_D);
+    }
+    for (let x = 0; x <= 4; x++) {
+      p.px(x, 3, SPK_D);
+      p.px(x, 4, SPK_C);
+    }
+  }
+  if (c.br) {
+    for (let y = 13; y <= 17; y++) {
+      p.px(13, y, SPK_C);
+      p.px(14, y, SPK_D);
+    }
+    for (let x = 13; x <= 17; x++) {
+      p.px(x, 14, SPK_D);
+      p.px(x, 13, SPK_C);
+    }
+  }
+  if (c.bl) {
+    for (let y = 13; y <= 17; y++) {
+      p.px(4, y, SPK_C);
+      p.px(3, y, SPK_D);
+    }
+    for (let x = 0; x <= 4; x++) {
+      p.px(x, 14, SPK_D);
+      p.px(x, 13, SPK_C);
+    }
+  }
+}
+
+const SPIKE_ICON_KEY = 'spikeblock-xxxx';
+
+/** Lazily generate (and cache) the spike-block texture for a face/corner
+ *  combination — the 8-way-aware state space is too big to pre-generate. */
+export function ensureSpikeBlockTexture(
+  scene: Phaser.Scene,
+  f: SpikeFaces,
+  c: SpikeCorners,
+): string {
+  const key =
+    `spikeblock-${f.t}${f.b}${f.l}${f.r}-` +
+    `${c.tl ? 1 : 0}${c.tr ? 1 : 0}${c.bl ? 1 : 0}${c.br ? 1 : 0}`;
+  if (!scene.textures.exists(key)) {
+    const p = new Painter(scene);
+    drawSpikeBlockTex(p, f, c);
+    p.save(key);
+  }
+  return key;
 }
 
 export function createTextures(scene: Phaser.Scene): void {
@@ -424,20 +507,11 @@ export function createTextures(scene: Phaser.Scene): void {
     p.save(`lockblock-${maskKey(open)}`);
   }
 
-  // spike blocks: 81-state family — each face merges with a neighbouring
-  // spike block, sits edged against another solid, or grows teeth into air
-  const FACE_STATES: SpikeFace[] = ['m', 'e', 'x'];
-  for (const ft of FACE_STATES) {
-    for (const fb of FACE_STATES) {
-      for (const fl of FACE_STATES) {
-        for (const fr of FACE_STATES) {
-          const p = new Painter(scene);
-          drawSpikeBlockTex(p, { t: ft, b: fb, l: fl, r: fr });
-          p.save(`spikeblock-${ft}${fb}${fl}${fr}`);
-        }
-      }
-    }
-  }
+  // spike blocks are generated lazily per face/corner combination
+  // (ensureSpikeBlockTexture) — pre-generate only the editor icon
+  const sbIcon = new Painter(scene);
+  drawSpikeBlockTex(sbIcon, { t: 'x', b: 'x', l: 'x', r: 'x' });
+  sbIcon.save(SPIKE_ICON_KEY);
 
   // body segments for every connection shape
   for (const open of BODY_MASKS) {

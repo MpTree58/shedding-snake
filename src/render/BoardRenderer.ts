@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { Cell, GameState, GameEvent, Vec } from '../core/types';
-import { Open, Side, maskKey, TILE } from './textures';
+import { Open, Side, ensureSpikeBlockTexture, maskKey, TILE } from './textures';
 import { KENNEY_SCALE } from './backdrop';
 
 export interface BoardLayout {
@@ -126,9 +126,20 @@ export class BoardRenderer {
               c === Cell.Wall || c === Cell.Lock || c === Cell.Shed || c === Cell.ExitKey;
             return solid ? 'e' : 'x';
           };
-          const key =
-            `spikeblock-${face(x, y - 1)}${face(x, y + 1)}` +
-            `${face(x - 1, y)}${face(x + 1, y)}`;
+          const fT = face(x, y - 1);
+          const fB = face(x, y + 1);
+          const fL = face(x - 1, y);
+          const fR = face(x + 1, y);
+          const key = ensureSpikeBlockTexture(
+            scene,
+            { t: fT, b: fB, l: fL, r: fR },
+            {
+              tl: fT === 'm' && fL === 'm' && face(x - 1, y - 1) === 'x',
+              tr: fT === 'm' && fR === 'm' && face(x + 1, y - 1) === 'x',
+              bl: fB === 'm' && fL === 'm' && face(x - 1, y + 1) === 'x',
+              br: fB === 'm' && fR === 'm' && face(x + 1, y + 1) === 'x',
+            },
+          );
           add(scene.add.image(p.x, p.y, key));
           continue;
         }
