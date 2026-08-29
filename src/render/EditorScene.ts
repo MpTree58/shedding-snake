@@ -289,7 +289,12 @@ export class EditorScene extends Phaser.Scene {
     this.input.on('pointerup', (p: Phaser.Input.Pointer) => {
       if (this.barPointerDown) {
         this.barPointerDown = false;
-        if (!this.barDragging && this.inBar(p)) {
+        // select only inside the VISIBLE strip window — the masked strip
+        // logically extends under the arrows/eraser, and clicks there must
+        // not fall through to hidden tools
+        const inVisibleStrip =
+          p.x >= this.barLeft && p.x <= this.barLeft + BAR_VIS_W;
+        if (!this.barDragging && this.inBar(p) && inVisibleStrip) {
           const idx = Math.floor((p.x - this.toolbar.x) / ITEM_W);
           const tool = TOOLS[idx];
           if (tool) this.selectTool(tool);
