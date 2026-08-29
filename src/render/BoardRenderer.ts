@@ -94,11 +94,12 @@ export class BoardRenderer {
         }
         if (cell === Cell.Lock) {
           // lock blocks connect like terrain: adjacent locks merge into one
-          // continuous locked mass (generated at native 36px — no scaling)
+          // continuous locked mass (generated at native 36px — no scaling);
+          // off-board counts as connected so edge blocks run off-screen
           const lockAt = (lx: number, ly: number) =>
             lx >= 0 && lx < state.width && ly >= 0 && ly < state.height
               ? state.grid[ly]![lx] === Cell.Lock
-              : false;
+              : true;
           const open: Open = {
             t: lockAt(x, y - 1),
             b: lockAt(x, y + 1),
@@ -115,10 +116,14 @@ export class BoardRenderer {
         }
         if (cell === Cell.SpikeBlock) {
           // our own spike block: connects like terrain, teeth on exposed top
-          const sbAt = (sx: number, sy: number) =>
-            sx >= 0 && sx < state.width && sy >= 0 && sy < state.height
-              ? state.grid[sy]![sx] === Cell.SpikeBlock
-              : false;
+          // below/side off-board counts as connected (bottom-row blocks merge
+          // into the dirt fill, edge blocks run off-screen) — but never the
+          // top: the lethal top teeth must always show
+          const sbAt = (sx: number, sy: number) => {
+            if (sy < 0) return false;
+            if (sy >= state.height || sx < 0 || sx >= state.width) return true;
+            return state.grid[sy]![sx] === Cell.SpikeBlock;
+          };
           const open: Open = {
             t: sbAt(x, y - 1),
             b: sbAt(x, y + 1),
@@ -169,12 +174,15 @@ export class BoardRenderer {
 
     const belowPx = this.scene.scale.height - (layout.oy + state.height * TILE * layout.fit);
     const bottomRows = Math.ceil(belowPx / (TILE * layout.fit));
-    const bottomIsWall = (x: number) => {
+    // Any occupied bottom-row cell gets dirt beneath it — spikes, blocks and
+    // doors sitting on the board's last row must not hover over a sky shaft.
+    // Empty bottom cells stay open: those are intentional bottomless pits.
+    const bottomIsGround = (x: number) => {
       const gx = Math.min(Math.max(x, 0), state.width - 1);
-      return state.grid[state.height - 1]![x >= 0 && x < state.width ? x : gx] === Cell.Wall;
+      return state.grid[state.height - 1]![x >= 0 && x < state.width ? x : gx] !== Cell.Empty;
     };
     for (let x = -sideTiles; x < state.width + sideTiles; x++) {
-      if (!bottomIsWall(x)) continue;
+      if (!bottomIsGround(x)) continue;
       for (let i = 1; i <= bottomRows; i++) {
         const p = at(x, state.height - 1 + i);
         add(scene.add.image(p.x, p.y, 'terrain-none').setScale(KENNEY_SCALE));

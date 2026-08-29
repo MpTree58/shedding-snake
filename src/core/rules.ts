@@ -202,9 +202,12 @@ function applyGravity(s: GameState, events: GameEvent[]): void {
     if (headCell === Cell.Apple) {
       s.grid[head.y]![head.x] = Cell.Empty;
       s.applesLeft--;
-      // Grow: duplicate the tail in place; the overlap resolves on the
-      // next regular move (standard snake growth trick).
-      s.snake.push({ ...s.snake[s.snake.length - 1]! });
+      // Grow into the cell the tail just vacated this fall step — the snake
+      // visibly stretches upward, length always matches what's on screen,
+      // and there is never an overlapped segment (which used to corrupt the
+      // board when shedding right after a falling catch).
+      const tail = s.snake[s.snake.length - 1]!;
+      s.snake.push({ x: tail.x, y: tail.y - 1 });
       events.push({ type: 'ate', at: { ...head } });
     } else if (headCell === Cell.Key) {
       s.grid[head.y]![head.x] = Cell.Empty;
