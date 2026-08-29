@@ -38,8 +38,16 @@ export function makeButton(
   btn.on('pointerout', () =>
     btn.setStyle({ backgroundColor: opts.selected ? '#e07a3f' : '#20344a' }),
   );
+  // Fire on RELEASE, never on press: handlers may open blocking dialogs
+  // (window.prompt in SHARE/IMPORT). A dialog opened during pointerdown
+  // swallows the pointerup, leaving Phaser's touch pointer stuck "down"
+  // forever — every later tap gets ignored. On pointerup the release has
+  // already been delivered, so a blocking dialog can't corrupt anything.
   btn.on('pointerdown', (p: Phaser.Input.Pointer, _x: number, _y: number, ev: Phaser.Types.Input.EventData) => {
-    ev.stopPropagation(); // don't let board-painting handlers see this click
+    ev.stopPropagation(); // don't let board-painting handlers see this press
+  });
+  btn.on('pointerup', (p: Phaser.Input.Pointer, _x: number, _y: number, ev: Phaser.Types.Input.EventData) => {
+    ev.stopPropagation();
     onClick();
   });
   return btn;
