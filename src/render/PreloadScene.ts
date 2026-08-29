@@ -32,6 +32,7 @@ export class PreloadScene extends Phaser.Scene {
       'sfx-blocked': 'bong_001',
       'sfx-undo': 'back_001',
       'sfx-open': 'open_001',
+      'sfx-land': 'land_001',
     };
     for (const [key, file] of Object.entries(sfx)) {
       this.load.audio(key, `assets/audio/${file}.mp3`);

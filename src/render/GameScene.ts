@@ -7,11 +7,10 @@ import { LEVELS } from '../levels';
 import { progress } from '../progress';
 import { drawBackdrop } from './backdrop';
 import { BoardLayout, BoardRenderer, cellCenter, layoutBoard, sideTo } from './BoardRenderer';
-import { Open, Side, maskKey } from './textures';
+import { Open, Side, TILE, maskKey } from './textures';
 import { INK, TEXT_RES, makeButton, playBgm } from './ui';
 
 const MOVE_MS = 80;
-const FALL_MS = 170;
 
 export interface GameSceneData {
   levelIndex?: number;
@@ -240,7 +239,9 @@ export class GameScene extends Phaser.Scene {
     // snake: persistent, connection-aware sprites — tweened, not teleported
     const snake = state.snake;
     const snap = events.length === 0; // level load / undo / restart
-    const hasFall = events.some((e) => e.type === 'fell');
+    const fellEv = events.find((e) => e.type === 'fell');
+    const fellCells = fellEv && fellEv.type === 'fell' ? fellEv.cells : 0;
+    const fallMs = Math.min(60 + 90 * fellCells, 320);
     while (this.snakeSprites.length < snake.length) {
       const img = this.add.image(0, 0, 'body-lr');
       this.snakeLayer.add(img);
@@ -270,15 +271,35 @@ export class GameScene extends Phaser.Scene {
       this.tweens.killTweensOf(spr);
       if (snap) {
         spr.setPosition(p.x, p.y);
+      } else if (fellCells > 0) {
+        // two-phase: the step happens first (tail swings into the air),
+        // THEN gravity drags the whole snake down onto the final spot
+        const mid = { x: p.x, y: p.y - fellCells * TILE };
+        this.tweens.chain({
+          targets: spr,
+          tweens: [
+            { x: mid.x, y: mid.y, duration: MOVE_MS, ease: 'Linear' },
+            { x: p.x, y: p.y, duration: fallMs, ease: 'Quad.In' },
+          ],
+        });
       } else {
         this.tweens.add({
           targets: spr,
           x: p.x,
           y: p.y,
-          duration: hasFall ? FALL_MS : MOVE_MS,
-          ease: hasFall ? 'Quad.In' : 'Linear',
+          duration: MOVE_MS,
+          ease: 'Linear',
         });
       }
+    }
+    if (fellCells > 0) {
+      // impact feedback exactly when the snake hits the ground
+      this.time.delayedCall(MOVE_MS + fallMs, () => {
+        if (state.status !== 'dead' || state.deathCause === 'spike') {
+          this.sfx('sfx-land', Math.min(0.25 + 0.1 * fellCells, 0.55));
+        }
+        if (fellCells > 1) this.cameras.main.shake(80, 0.004);
+      });
     }
     const headImg = this.snakeSprites[0]!;
 
@@ -308,8 +329,7 @@ export class GameScene extends Phaser.Scene {
           this.sfx('sfx-blocked', 0.2);
           break;
         case 'fell':
-          if (ev.cells > 1) this.cameras.main.shake(80, 0.004);
-          break;
+          break; // impact feedback is timed to the landing, see above
         case 'died':
           this.sfx('sfx-die', 0.5);
           this.cameras.main.shake(150, 0.008);
