@@ -132,7 +132,10 @@ export function shed(state: GameState): StepResult {
   const s = cloneState(state);
   const events: GameEvent[] = [];
   const tail = s.snake.pop()!;
-  s.grid[tail.y]![tail.x] = Cell.Shed;
+  // a tail dangling off the board sheds into the void — no crate appears
+  if (tail.y >= 0 && tail.y < s.height && tail.x >= 0 && tail.x < s.width) {
+    s.grid[tail.y]![tail.x] = Cell.Shed;
+  }
   s.moves++;
   events.push({ type: 'shed', at: tail });
 

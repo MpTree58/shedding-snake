@@ -104,7 +104,8 @@ export class EditorScene extends Phaser.Scene {
       ['TEST', () => this.test()],
       ['SAVE', () => this.save()],
       ['LOAD', () => this.loadSaved()],
-      ['COPY', () => this.copyAscii()],
+      ['SHARE', () => this.share()],
+      ['IMPORT', () => this.importCode()],
       ['MENU', () => this.scene.start('menu')],
     ];
     const ax0 = this.scale.width / 2 - ((actions.length - 1) * 110) / 2;
@@ -490,12 +491,35 @@ export class EditorScene extends Phaser.Scene {
     }
   }
 
-  private copyAscii(): void {
-    const ascii = this.toAscii();
+  /** Level exchange v1: compact codes players can paste anywhere (chat,
+   *  comments, forums) — zero backend needed. */
+  private share(): void {
+    const code = 'SNAKE1.' + btoa(this.toAscii());
     navigator.clipboard
-      ?.writeText(ascii)
-      .then(() => toast(this, 'ASCII copied — paste into levels/index.ts'))
+      ?.writeText(code)
+      .then(() => toast(this, 'Level code copied — share it anywhere!'))
       .catch(() => toast(this, 'Copy blocked — see console'));
-    console.log('[editor] level ASCII:\n' + ascii);
+    console.log('[editor] share code:', code, '\nASCII:\n' + this.toAscii());
+  }
+
+  private importCode(): void {
+    const code = window.prompt('Paste a level code (SNAKE1.…):');
+    if (!code) return;
+    try {
+      const ascii = atob(code.trim().replace(/^SNAKE1\./, ''));
+      parseLevel({ name: 'import', map: ascii }); // validate before touching draft
+      const rows = ascii
+        .split('\n')
+        .filter((l) => l.trim().length > 0)
+        .map((l) => [...l.padEnd(W, '.').slice(0, W)]);
+      while (rows.length < H) rows.push(Array.from({ length: W }, () => '.'));
+      this.rows = rows.slice(0, H);
+      parseLevel({ name: 'import', map: this.toAscii() }); // still valid after fit-to-grid
+      this.storeDraft();
+      this.rebuild();
+      toast(this, 'Level imported');
+    } catch {
+      toast(this, 'Invalid level code');
+    }
   }
 }
