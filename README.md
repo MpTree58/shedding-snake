@@ -63,7 +63,7 @@ already open.
 | M | Mute |
 | ESC | Back to menu / level select / editor |
 
-Mobile: swipe to move, tap to shed.
+Mobile: swipe to move, use the on-screen SHED button.
 
 Rules worth knowing:
 

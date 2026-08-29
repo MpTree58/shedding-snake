@@ -8,7 +8,7 @@ import { progress } from '../progress';
 import { drawBackdrop } from './backdrop';
 import { BoardLayout, BoardRenderer, cellCenter, layoutBoard, sideTo } from './BoardRenderer';
 import { Open, Side, maskKey } from './textures';
-import { INK, TEXT_RES, playBgm } from './ui';
+import { INK, TEXT_RES, makeButton, playBgm } from './ui';
 
 const MOVE_MS = 80;
 const FALL_MS = 170;
@@ -185,21 +185,34 @@ export class GameScene extends Phaser.Scene {
       else if (ev.code === 'KeyP') this.gotoLevel(this.levelIndex - 1);
     });
 
-    // Basic swipe support for phones; on-screen buttons come later.
+    // Swipe to move. Shedding is ONLY the X key or the SHED button — a bare
+    // tap/click must never shed (people click the canvas just to focus it).
+    const shedBtn = makeButton(
+      this,
+      this.scale.width - 56,
+      this.scale.height - 64,
+      'SHED',
+      () => this.engine.dispatch({ type: 'shed' }),
+      { fontSize: '16px', minWidth: 80 },
+    );
+    const onButton = (p: Phaser.Input.Pointer): boolean =>
+      shedBtn.getBounds().contains(p.x, p.y);
+
     this.input.on('pointerdown', (p: Phaser.Input.Pointer) => {
-      this.swipeStart = { x: p.x, y: p.y };
+      this.swipeStart = onButton(p) ? undefined : { x: p.x, y: p.y };
     });
     this.input.on('pointerup', (p: Phaser.Input.Pointer) => {
       if (!this.swipeStart) return;
       const dx = p.x - this.swipeStart.x;
       const dy = p.y - this.swipeStart.y;
       this.swipeStart = undefined;
-      if (this.engine.state.status === 'won') {
-        this.advance();
+      if (Math.abs(dx) < 24 && Math.abs(dy) < 24) {
+        // a tap: only advance past overlays, never a game action
+        if (this.engine.state.status === 'won') this.advance();
         return;
       }
-      if (Math.abs(dx) < 24 && Math.abs(dy) < 24) {
-        this.engine.dispatch({ type: 'shed' }); // tap = shed
+      if (this.engine.state.status === 'won') {
+        this.advance();
         return;
       }
       const dir: DirName =
