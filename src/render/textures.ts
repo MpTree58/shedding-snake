@@ -419,48 +419,28 @@ function drawSpikeBlockTex(p: Painter, f: SpikeFaces, c: SpikeCorners = {}): voi
     }
   }
 
-  // concave inner corners: the base bar turns the corner, orientations
-  // matching the bars of the two merging arms, so the frame is continuous
-  if (c.tr) {
-    for (let y = 0; y <= 4; y++) {
-      p.px(13, y, SPK_C);
-      p.px(14, y, SPK_D);
+  // concave inner corners: the frame turns the corner with the SAME layer
+  // order as every straight face (outline → D → C → body), leaving only a
+  // small 2x2 open notch at the very elbow
+  const wrapCorner = (right: boolean, bottom: boolean): void => {
+    const X = (i: number) => (right ? 17 - i : i);
+    const Y = (i: number) => (bottom ? 17 - i : i);
+    const layers: [number, number][] = [
+      [2, DARK],
+      [3, SPK_D],
+      [4, SPK_C],
+    ];
+    for (const [d, color] of layers) {
+      for (let a = 0; a <= d; a++) {
+        p.px(X(d), Y(a), color); // vertical run of this layer
+        p.px(X(a), Y(d), color); // horizontal run of this layer
+      }
     }
-    for (let x = 13; x <= 17; x++) {
-      p.px(x, 3, SPK_D);
-      p.px(x, 4, SPK_C);
-    }
-  }
-  if (c.tl) {
-    for (let y = 0; y <= 4; y++) {
-      p.px(4, y, SPK_C);
-      p.px(3, y, SPK_D);
-    }
-    for (let x = 0; x <= 4; x++) {
-      p.px(x, 3, SPK_D);
-      p.px(x, 4, SPK_C);
-    }
-  }
-  if (c.br) {
-    for (let y = 13; y <= 17; y++) {
-      p.px(13, y, SPK_C);
-      p.px(14, y, SPK_D);
-    }
-    for (let x = 13; x <= 17; x++) {
-      p.px(x, 14, SPK_D);
-      p.px(x, 13, SPK_C);
-    }
-  }
-  if (c.bl) {
-    for (let y = 13; y <= 17; y++) {
-      p.px(4, y, SPK_C);
-      p.px(3, y, SPK_D);
-    }
-    for (let x = 0; x <= 4; x++) {
-      p.px(x, 14, SPK_D);
-      p.px(x, 13, SPK_C);
-    }
-  }
+  };
+  if (c.tr) wrapCorner(true, false);
+  if (c.tl) wrapCorner(false, false);
+  if (c.br) wrapCorner(true, true);
+  if (c.bl) wrapCorner(false, true);
 }
 
 const SPIKE_ICON_KEY = 'spikeblock-xxxx';
