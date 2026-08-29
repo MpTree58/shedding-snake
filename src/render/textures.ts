@@ -357,7 +357,11 @@ function drawSpikeBlockTex(p: Painter, f: SpikeFaces): void {
     }
   };
 
-  // teeth + base bar (D bar with a C rim) only on exposed ('x') faces
+  // teeth + base bar (D bar with a C rim) only on exposed ('x') faces.
+  // Along the face, teeth run to the very edge when merging with another
+  // spike block, but keep a 2px shoulder before a seam with other solids —
+  // teeth must never poke straight into the neighbouring dirt.
+  const shoulder = (s: SpikeFace) => (s === 'x' ? DEPTH : s === 'e' ? 2 : 0);
   const faces: ('t' | 'b' | 'l' | 'r')[] = [];
   if (f.t === 'x') faces.push('t');
   if (f.b === 'x') faces.push('b');
@@ -365,8 +369,8 @@ function drawSpikeBlockTex(p: Painter, f: SpikeFaces): void {
   if (f.r === 'x') faces.push('r');
   for (const side of faces) {
     const horizontal = side === 't' || side === 'b';
-    const along0 = horizontal ? inset(f.l) : inset(f.t);
-    const along1 = 17 - (horizontal ? inset(f.r) : inset(f.b));
+    const along0 = horizontal ? shoulder(f.l) : shoulder(f.t);
+    const along1 = 17 - (horizontal ? shoulder(f.r) : shoulder(f.b));
     const span = along1 - along0 + 1;
     const n = Math.floor(span / TW);
     const pad = along0 + Math.floor((span - n * TW) / 2);

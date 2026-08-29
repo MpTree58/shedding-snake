@@ -7,7 +7,7 @@ import { LevelDef } from '../core/level';
  *
  * Design follows the Snakebird playbook: the direct path is a trap, fruit
  * order is forced by terrain, growth changes what is possible, and drops
- * are one-way commitments. Min-move counts: 17/19/18/21/20/23.
+ * are one-way commitments. Min-move counts: 17/19/21/20/31/23.
  */
 export const LEVELS: LevelDef[] = [
   {
@@ -42,21 +42,7 @@ export const LEVELS: LevelDef[] = [
 `,
   },
   {
-    name: '3 · Nail Garden',
-    hint: 'Teeth below — cross where your body can reach.',
-    map: `
-..............
-..............
-..............
-..............
-..o.....o.....
-..#.....#.....
-21H..........E
-#####^^##SS###
-`,
-  },
-  {
-    name: '4 · Keyring',
+    name: '3 · Keyring',
     hint: 'One key opens one lock. Spend wisely.',
     map: `
 ..............
@@ -71,7 +57,7 @@ export const LEVELS: LevelDef[] = [
 `,
   },
   {
-    name: '5 · The Vault',
+    name: '4 · The Vault',
     hint: 'Catch the key on your way down.',
     map: `
 ............
@@ -84,6 +70,22 @@ export const LEVELS: LevelDef[] = [
 ..#E.L..#...
 ..######....
 ............
+`,
+  },
+  {
+    name: '5 · Nail Garden',
+    hint: 'The teeth only bite what rests on them. Glide over — anchored.',
+    map: `
+..............
+..............
+..o...........
+..#...........
+.....o........
+.21H.S.......E
+.####S####...#
+..........^^^.
+..........###.
+..............
 `,
   },
   {
