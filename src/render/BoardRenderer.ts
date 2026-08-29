@@ -115,29 +115,21 @@ export class BoardRenderer {
           continue;
         }
         if (cell === Cell.SpikeBlock) {
-          // our own spike block: connects like terrain, teeth on exposed top
-          // a face is "connected" (no teeth, flush edge) when it touches any
-          // solid — other spike blocks merge seamlessly, and faces embedded
-          // against walls/locks/crates don't grow teeth into the dirt. The
-          // top only hides its lethal teeth when something solid sits on it.
-          const flushWith = (c: Cell) =>
-            c === Cell.Wall ||
-            c === Cell.SpikeBlock ||
-            c === Cell.Lock ||
-            c === Cell.Shed ||
-            c === Cell.ExitKey;
-          const sbAt = (sx: number, sy: number) => {
-            if (sy < 0) return false; // board top edge: keep the teeth
-            if (sy >= state.height || sx < 0 || sx >= state.width) return true;
-            return flushWith(state.grid[sy]![sx]!);
+          // per face: merge with neighbouring spike blocks, keep an outlined
+          // boundary against other solids/board edges, grow teeth into air
+          const face = (sx: number, sy: number): 'm' | 'e' | 'x' => {
+            if (sy < 0) return 'x'; // board top: keep the lethal teeth
+            if (sy >= state.height || sx < 0 || sx >= state.width) return 'e';
+            const c = state.grid[sy]![sx]!;
+            if (c === Cell.SpikeBlock) return 'm';
+            const solid =
+              c === Cell.Wall || c === Cell.Lock || c === Cell.Shed || c === Cell.ExitKey;
+            return solid ? 'e' : 'x';
           };
-          const open: Open = {
-            t: sbAt(x, y - 1),
-            b: sbAt(x, y + 1),
-            l: sbAt(x - 1, y),
-            r: sbAt(x + 1, y),
-          };
-          add(scene.add.image(p.x, p.y, `spikeblock-${maskKey(open)}`));
+          const key =
+            `spikeblock-${face(x, y - 1)}${face(x, y + 1)}` +
+            `${face(x - 1, y)}${face(x + 1, y)}`;
+          add(scene.add.image(p.x, p.y, key));
           continue;
         }
         let key: string;

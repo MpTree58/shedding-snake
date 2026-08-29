@@ -279,14 +279,26 @@ function drawLockDetail(p: Painter, open: Open): void {
   p.px(9, 10, GOLD);
 }
 
+/** Per-face state of a spike block:
+ *  'm' merge (another spike block — seamless), 'e' edged (flush against a
+ *  solid or the board edge — outlined, no teeth), 'x' exposed (outline,
+ *  base bar and teeth). */
+export type SpikeFace = 'm' | 'e' | 'x';
+export interface SpikeFaces {
+  t: SpikeFace;
+  b: SpikeFace;
+  l: SpikeFace;
+  r: SpikeFace;
+}
+
 /**
  * Spike block, design "K3 · 基座环绕" (团队选定):
- * teeth grow on EVERY exposed face, sitting on a bright base bar that wraps
- * the block — tooth shape and the four colors are transplanted pixel-for-
- * pixel from the stock Kenney spike (tile 0068). Connected faces merge
- * seamlessly, like terrain.
+ * teeth grow on every face exposed to passable space; faces embedded
+ * against other solids keep a clean outline boundary (no teeth); faces
+ * against other spike blocks merge seamlessly. Tooth shape and colors are
+ * transplanted pixel-for-pixel from the stock Kenney spike (tile 0068).
  */
-function drawSpikeBlockTex(p: Painter, open: Open): void {
+function drawSpikeBlockTex(p: Painter, f: SpikeFaces): void {
   // Kenney spike-family palette, sampled from tile 0068
   const SPK_B = 0xdce1e7; // highlight
   const SPK_C = 0x959ab1; // lit flank
@@ -294,20 +306,24 @@ function drawSpikeBlockTex(p: Painter, open: Open): void {
   const CORE = 0x566c86;
   const CORE_SHADE = 0x3b4252;
   const DEPTH = 5; // spike zone thickness on exposed faces
+  const inset = (s: SpikeFace) => (s === 'x' ? DEPTH : 0);
 
-  // core body
-  const x0 = open.l ? 0 : DEPTH;
-  const x1 = open.r ? 17 : 17 - DEPTH;
-  const y0 = open.t ? 0 : DEPTH;
-  const y1 = open.b ? 17 : 17 - DEPTH;
+  // core body: full-bleed on merged/edged faces, inset behind teeth
+  const x0 = inset(f.l);
+  const x1 = 17 - inset(f.r);
+  const y0 = inset(f.t);
+  const y1 = 17 - inset(f.b);
   for (let y = y0; y <= y1; y++) {
     for (let x = x0; x <= x1; x++) {
-      const edge =
-        (y === y0 && !open.t) ||
-        (y === y1 && !open.b) ||
-        (x === x0 && !open.l) ||
-        (x === x1 && !open.r);
-      p.px(x, y, edge ? DARK : y >= y1 - 2 && !open.b ? CORE_SHADE : CORE);
+      const oT = f.t !== 'm' && y === y0;
+      const oB = f.b !== 'm' && y === y1;
+      const oL = f.l !== 'm' && x === x0;
+      const oR = f.r !== 'm' && x === x1;
+      if ((oT && oL) || (oT && oR) || (oB && oL) || (oB && oR)) {
+        continue; // radius-1 corner between two outlined faces
+      }
+      const edge = oT || oB || oL || oR;
+      p.px(x, y, edge ? DARK : y >= y1 - 2 && f.b !== 'm' ? CORE_SHADE : CORE);
     }
   }
 
@@ -341,16 +357,16 @@ function drawSpikeBlockTex(p: Painter, open: Open): void {
     }
   };
 
-  // teeth + base bar (D bar with a bright B rim) on every exposed face
+  // teeth + base bar (D bar with a C rim) only on exposed ('x') faces
   const faces: ('t' | 'b' | 'l' | 'r')[] = [];
-  if (!open.t) faces.push('t');
-  if (!open.b) faces.push('b');
-  if (!open.l) faces.push('l');
-  if (!open.r) faces.push('r');
+  if (f.t === 'x') faces.push('t');
+  if (f.b === 'x') faces.push('b');
+  if (f.l === 'x') faces.push('l');
+  if (f.r === 'x') faces.push('r');
   for (const side of faces) {
     const horizontal = side === 't' || side === 'b';
-    const along0 = (horizontal ? open.l : open.t) ? 0 : DEPTH;
-    const along1 = (horizontal ? open.r : open.b) ? 17 : 17 - DEPTH;
+    const along0 = horizontal ? inset(f.l) : inset(f.t);
+    const along1 = 17 - (horizontal ? inset(f.r) : inset(f.b));
     const span = along1 - along0 + 1;
     const n = Math.floor(span / TW);
     const pad = along0 + Math.floor((span - n * TW) / 2);
@@ -404,11 +420,19 @@ export function createTextures(scene: Phaser.Scene): void {
     p.save(`lockblock-${maskKey(open)}`);
   }
 
-  // spike blocks: 16-state connected family, teeth on the exposed top
-  for (const open of allMasks()) {
-    const p = new Painter(scene);
-    drawSpikeBlockTex(p, open);
-    p.save(`spikeblock-${maskKey(open)}`);
+  // spike blocks: 81-state family — each face merges with a neighbouring
+  // spike block, sits edged against another solid, or grows teeth into air
+  const FACE_STATES: SpikeFace[] = ['m', 'e', 'x'];
+  for (const ft of FACE_STATES) {
+    for (const fb of FACE_STATES) {
+      for (const fl of FACE_STATES) {
+        for (const fr of FACE_STATES) {
+          const p = new Painter(scene);
+          drawSpikeBlockTex(p, { t: ft, b: fb, l: fl, r: fr });
+          p.save(`spikeblock-${ft}${fb}${fl}${fr}`);
+        }
+      }
+    }
   }
 
   // body segments for every connection shape

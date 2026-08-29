@@ -29,7 +29,7 @@ interface Tool {
 const TOOLS: Tool[] = [
   { id: 'wall', label: 'WALL', char: '#', icon: 'terrain-tblr' },
   { id: 'spike', label: 'SPIKE', char: '^', icon: 'spike' },
-  { id: 'spikeblock', label: 'SPIKEBLK', char: 'S', icon: 'spikeblock-none' },
+  { id: 'spikeblock', label: 'SPIKEBLK', char: 'S', icon: 'spikeblock-xxxx' },
   { id: 'apple', label: 'APPLE', char: 'o', icon: 'apple' },
   { id: 'key', label: 'KEY', char: 'k', icon: 'key' },
   { id: 'lock', label: 'LOCK', char: 'L', icon: 'lockblock-none' },
